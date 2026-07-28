@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Synchronized Stopwatch</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       margin: 0;
@@ -15,31 +16,93 @@
       background-color: #1a1a2e;
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      flex-direction: column;
+      display: flex;
     }
 
-    .container {
-      text-align: center;
+    .layout-grid {
+      display: flex;
+      width: 100%;
+      max-width: 1800px;
+      margin: 0 auto;
+      gap: 2rem;
       padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      flex: 1;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      padding: 1.5rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 4rem);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(0, 212, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    .main {
+      flex: 1.5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h2 {
+      color: #00d4ff;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 500;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
     #timer {
-      font-size: clamp(4rem, 15vw, 10rem);
+      font-size: clamp(3rem, 10vw, 7rem);
       font-weight: 300;
       color: #00d4ff;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.02em;
-      margin-bottom: 2rem;
+      margin-bottom: 0.5rem;
       text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
     }
 
-    #control-btn {
-      background-color: #00d4ff;
-      color: #1a1a2e;
+    .timer-label {
+      font-size: 1rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 2rem;
+    }
+
+    #session-timer {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 300;
+      color: #ffaa00;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    #control-btn, #cancel-btn {
       border: none;
       padding: 1rem 3rem;
       font-size: 1.2rem;
@@ -49,22 +112,36 @@
       transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
     }
 
+    #control-btn {
+      background-color: #00d4ff;
+      color: #1a1a2e;
+    }
+
     #control-btn:hover:not(:disabled) {
       background-color: #00b8e6;
       transform: translateY(-1px);
     }
 
-    #control-btn:active:not(:disabled) {
+    #cancel-btn {
+      background-color: #ff4444;
+      color: #ffffff;
+    }
+
+    #cancel-btn:hover:not(:disabled) {
+      background-color: #cc0000;
+      transform: translateY(-1px);
+    }
+
+    #control-btn:active:not(:disabled), #cancel-btn:active:not(:disabled) {
       transform: translateY(0);
     }
 
-    #control-btn:disabled {
+    #control-btn:disabled, #cancel-btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
     }
 
     #status {
-      margin-top: 1.5rem;
       font-size: 0.9rem;
       color: #888;
     }
@@ -92,18 +169,104 @@
       opacity: 0;
       pointer-events: none;
     }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* History Styles */
+    .history-item {
+      background: rgba(0, 212, 255, 0.05);
+      border-left: 4px solid #00d4ff;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .history-item:hover {
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .history-date {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .history-duration {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      margin-top: 2rem;
+    }
+
+    /* Chart Styles */
+    .chart-container {
+      margin-bottom: 2rem;
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="timer">00:00.00</div>
-    <button id="control-btn" disabled>Start</button>
-    <div id="status">Verbinde...</div>
-  </div>
   <div id="error" class="hidden">Verbindung unterbrochen</div>
+  
+  <div class="layout-grid">
+    <!-- Left Sidebar: History -->
+    <div class="sidebar left" id="history-sidebar">
+      <h2>Historie</h2>
+      <div id="history-list">
+        <div class="history-empty">Lade Historie...</div>
+      </div>
+    </div>
+
+    <!-- Main Content: Timers & Controls -->
+    <div class="main">
+      <div id="timer">00:00.00</div>
+      <div class="timer-label">Gesamtzeit</div>
+      
+      <div id="session-wrapper" class="hidden" style="text-align: center;">
+        <div id="session-timer">00:00.00</div>
+        <div class="timer-label" style="color: #ffaa00;">Aktuelle Session</div>
+      </div>
+
+      <div class="controls">
+        <button id="control-btn" disabled>Start</button>
+        <button id="cancel-btn" class="hidden">Abbrechen</button>
+      </div>
+      <div id="status">Verbinde...</div>
+    </div>
+
+    <!-- Right Sidebar: Statistics -->
+    <div class="sidebar right" id="stats-sidebar">
+      <h2>Statistiken</h2>
+      <div class="chart-container">
+        <canvas id="avgChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="todChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="daysChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // UUID v4 generation
+    // --- UTILS ---
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0;
@@ -112,7 +275,6 @@
       });
     }
 
-    // Time format function: MM:SS.ms
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
       const minutes = Math.floor(totalSeconds / 60);
@@ -121,48 +283,68 @@
       return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
     }
 
-    // Client state
+    function formatTimeShort(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // --- STATE ---
     const clientId = generateUUID();
     let state = {
       running: false,
       startTime: null,
       elapsed: 0,
-      isController: false
+      isController: false,
+      sessions: []
     };
 
-    // DOM elements
+    let charts = {};
+
+    // --- DOM ELEMENTS ---
     const timerEl = document.getElementById('timer');
+    const sessionTimerEl = document.getElementById('session-timer');
+    const sessionWrapperEl = document.getElementById('session-wrapper');
     const controlBtn = document.getElementById('control-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const statusEl = document.getElementById('status');
     const errorEl = document.getElementById('error');
+    const historyListEl = document.getElementById('history-list');
 
-    // Update the displayed time using interpolation
+    // Chart Setup default config
+    Chart.defaults.color = '#888';
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    // --- RENDER FUNCTIONS ---
     function updateDisplay() {
       if (state.running && state.startTime) {
         const now = Date.now();
-        const displayTime = state.elapsed + (now - state.startTime);
-        timerEl.textContent = formatTime(displayTime);
+        const currentSessionTime = now - state.startTime;
+        const totalDisplayTime = state.elapsed + currentSessionTime;
+        
+        timerEl.textContent = formatTime(totalDisplayTime);
+        sessionTimerEl.textContent = formatTime(currentSessionTime);
       }
       requestAnimationFrame(updateDisplay);
     }
 
-    // Show error message
-    function showError() {
-      errorEl.classList.remove('hidden');
-    }
+    function showError() { errorEl.classList.remove('hidden'); }
+    function hideError() { errorEl.classList.add('hidden'); }
 
-    // Hide error message
-    function hideError() {
-      errorEl.classList.add('hidden');
-    }
-
-    // Update UI based on state
     function updateUI() {
-      // Update button state
       controlBtn.disabled = !state.isController;
       controlBtn.textContent = state.running ? 'Stop' : 'Start';
+      
+      if (state.running) {
+        sessionWrapperEl.classList.remove('hidden');
+        if(state.isController) cancelBtn.classList.remove('hidden');
+      } else {
+        sessionWrapperEl.classList.add('hidden');
+        cancelBtn.classList.add('hidden');
+        timerEl.textContent = formatTime(state.elapsed);
+      }
 
-      // Update status text
       if (state.isController) {
         statusEl.textContent = 'Du bist der Controller';
         statusEl.classList.add('is-controller');
@@ -171,33 +353,203 @@
         statusEl.classList.remove('is-controller');
       }
 
-      // Update displayed time when stopped
-      if (!state.running) {
-        timerEl.textContent = formatTime(state.elapsed);
+      renderHistory();
+      renderCharts();
+    }
+
+    function renderHistory() {
+      if (!state.sessions || state.sessions.length === 0) {
+        historyListEl.innerHTML = '<div class="history-empty">Noch keine Einträge.</div>';
+        return;
+      }
+
+      // Sort by start time descending
+      const sorted = [...state.sessions].sort((a, b) => b.start - a.start);
+      
+      historyListEl.innerHTML = sorted.map(s => {
+        const d = new Date(s.start);
+        const dateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="history-item">
+            <div class="history-date">${dateStr}</div>
+            <div class="history-duration">${formatTime(s.duration)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function initOrUpdateChart(id, type, data, options) {
+      const ctx = document.getElementById(id).getContext('2d');
+      if (charts[id]) {
+        charts[id].data = data;
+        charts[id].options = options;
+        charts[id].update();
+      } else {
+        charts[id] = new Chart(ctx, { type, data, options });
       }
     }
 
-    // Poll server state every 500ms
+    function renderCharts() {
+      if (!state.sessions) return;
+      const sessions = state.sessions;
+
+      // 1. Avg Time & Count
+      const count = sessions.length;
+      const totalTime = sessions.reduce((acc, s) => acc + s.duration, 0);
+      const avgTime = count > 0 ? totalTime / count : 0;
+      
+      initOrUpdateChart('avgChart', 'bar', {
+        labels: ['Gesamtanzahl', 'Ø Dauer (Min)'],
+        datasets: [{
+          label: 'Allgemein',
+          data: [count, avgTime / 60000], // duration in minutes
+          backgroundColor: ['#00d4ff', '#ffaa00'],
+          borderRadius: 4
+        }]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Übersicht', color: '#fff' },
+          legend: { display: false }
+        }
+      });
+
+      // 2. Time of Day
+      let todCounts = { 'Vor 12 Uhr': 0, '12 bis 17 Uhr': 0, '17 bis 24 Uhr': 0 };
+      let todTimes = { 'Vor 12 Uhr': 0, '12 bis 17 Uhr': 0, '17 bis 24 Uhr': 0 };
+      
+      sessions.forEach(s => {
+        const hour = new Date(s.start).getHours();
+        let key = '';
+        if (hour < 12) key = 'Vor 12 Uhr';
+        else if (hour < 17) key = '12 bis 17 Uhr';
+        else key = '17 bis 24 Uhr';
+        
+        todCounts[key]++;
+        todTimes[key] += s.duration;
+      });
+
+      initOrUpdateChart('todChart', 'pie', {
+        labels: Object.keys(todCounts),
+        datasets: [{
+          data: Object.values(todCounts),
+          backgroundColor: ['#00d4ff', '#ffaa00', '#ff4444'],
+          borderWidth: 0
+        }]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' },
+          legend: { position: 'bottom', labels: { color: '#888' } }
+        }
+      });
+
+      // 3. Days Chart (Last 7 days active)
+      const daysMap = {};
+      sessions.forEach(s => {
+        const d = new Date(s.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        if(!daysMap[d]) daysMap[d] = { count: 0, duration: 0 };
+        daysMap[d].count++;
+        daysMap[d].duration += s.duration;
+      });
+      const dayLabels = Object.keys(daysMap).sort(); // Sort by date string
+      const dayCounts = dayLabels.map(d => daysMap[d].count);
+      const dayDurations = dayLabels.map(d => daysMap[d].duration / 60000);
+
+      initOrUpdateChart('daysChart', 'line', {
+        labels: dayLabels,
+        datasets: [
+          {
+            label: 'Dauer (Min)',
+            data: dayDurations,
+            borderColor: '#ffaa00',
+            backgroundColor: 'rgba(255, 170, 0, 0.1)',
+            yAxisID: 'y',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Anzahl',
+            data: dayCounts,
+            borderColor: '#00d4ff',
+            backgroundColor: '#00d4ff',
+            type: 'bar',
+            yAxisID: 'y1'
+          }
+        ]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Aktivität pro Tag', color: '#fff' }
+        },
+        scales: {
+          y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
+          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+        }
+      });
+
+      // 4. Trend Chart (Cumulative Time over Time)
+      let cumulativeTime = 0;
+      const trendData = [...sessions].sort((a,b) => a.start - b.start).map(s => {
+        cumulativeTime += s.duration;
+        return {
+          x: new Date(s.start).toLocaleDateString('de-DE'),
+          y: cumulativeTime / 60000 // In minutes
+        };
+      });
+
+      initOrUpdateChart('trendChart', 'line', {
+        labels: trendData.map(d => d.x),
+        datasets: [{
+          label: 'Gesamtzeit (Min)',
+          data: trendData.map(d => d.y),
+          borderColor: '#00d4ff',
+          backgroundColor: 'rgba(0, 212, 255, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Gesamtzeit-Trend', color: '#fff' }
+        },
+        scales: {
+          x: { ticks: { maxTicksLimit: 7 } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      });
+    }
+
+    // --- API POLLING & ACTIONS ---
     async function pollState() {
       try {
         const response = await fetch(`/api/state?clientId=${clientId}`);
         if (!response.ok) throw new Error('Server error');
         const data = await response.json();
+        
+        // Only update UI fully if data changed to avoid re-rendering charts constantly
+        const stateChanged = state.running !== data.running || state.elapsed !== data.elapsed || JSON.stringify(state.sessions) !== JSON.stringify(data.sessions);
+        
         state.running = data.running;
         state.startTime = data.startTime;
         state.elapsed = data.elapsed;
         state.isController = data.isController;
-        updateUI();
+        state.sessions = data.sessions || [];
+        
+        if (stateChanged) {
+          updateUI();
+        }
         hideError();
       } catch (error) {
         showError();
-        // Keep displaying last known time
       }
     }
 
-    // Handle Start/Stop button click
-    async function handleControl() {
-      const action = state.running ? 'stop' : 'start';
+    async function handleAction(action) {
       try {
         const response = await fetch('/api/control', {
           method: 'POST',
@@ -210,6 +562,7 @@
             state.running = data.state.running;
             state.startTime = data.state.startTime;
             state.elapsed = data.state.elapsed;
+            state.sessions = data.state.sessions || [];
             updateUI();
           }
         }
@@ -218,12 +571,16 @@
       }
     }
 
-    // Event listeners
-    controlBtn.addEventListener('click', handleControl);
+    controlBtn.addEventListener('click', () => handleAction(state.running ? 'stop' : 'start'));
+    cancelBtn.addEventListener('click', () => {
+      if(confirm('Aktuelle Session wirklich abbrechen? Diese Zeit wird nicht gespeichert.')) {
+        handleAction('cancel');
+      }
+    });
 
-    // Start polling and animation loop
+    // --- INIT ---
     pollState();
-    setInterval(pollState, 500);
+    setInterval(pollState, 500); // Increased interval slightly could be good, but keeping 500ms for responsiveness
     requestAnimationFrame(updateDisplay);
   </script>
 </body>

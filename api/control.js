@@ -12,8 +12,10 @@ export default async function handler(req, res) {
       running: false,
       startTime: null,
       elapsed: 0,
-      controllerId: null
+      controllerId: null,
+      sessions: []
     };
+    if (!state.sessions) state.sessions = [];
 
     if (clientId !== state.controllerId) {
       return res.status(403).json({ success: false, error: 'Not the current controller' });
@@ -23,7 +25,20 @@ export default async function handler(req, res) {
       state.running = true;
       state.startTime = Date.now();
     } else if (action === 'stop') {
-      state.elapsed = state.elapsed + (Date.now() - state.startTime);
+      const now = Date.now();
+      const duration = now - state.startTime;
+      state.elapsed = state.elapsed + duration;
+      
+      state.sessions.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+        start: state.startTime,
+        end: now,
+        duration: duration
+      });
+
+      state.running = false;
+      state.startTime = null;
+    } else if (action === 'cancel') {
       state.running = false;
       state.startTime = null;
     }
@@ -35,7 +50,8 @@ export default async function handler(req, res) {
       state: {
         running: state.running,
         startTime: state.startTime,
-        elapsed: state.elapsed
+        elapsed: state.elapsed,
+        sessions: state.sessions
       }
     });
   } catch (error) {
