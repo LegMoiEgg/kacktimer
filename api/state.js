@@ -10,9 +10,11 @@ export default async function handler(req, res) {
       startTime: null,
       elapsed: 0,
       controllerId: null,
-      sessions: []
+      sessions: [],
+      dailyFood: {}
     };
     if (!state.sessions) state.sessions = [];
+    if (!state.dailyFood) state.dailyFood = {};
 
     // Controller registration: if clientId is provided, register as new controller
     if (clientId) {
@@ -26,6 +28,7 @@ export default async function handler(req, res) {
       startTime: state.startTime,
       elapsed: state.elapsed,
       sessions: state.sessions,
+      dailyFood: state.dailyFood,
       controllerId: state.controllerId,
       isController: clientId ? clientId === state.controllerId : false
     });

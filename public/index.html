@@ -158,9 +158,39 @@
       cursor: not-allowed;
     }
 
+    /* Food Selector */
+    .food-selector-container {
+      margin-top: 1rem;
+      background: rgba(0, 212, 255, 0.05);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .food-selector-container label {
+      color: #00d4ff;
+      font-weight: 500;
+    }
+    .food-selector-container select {
+      background: #1a1a2e;
+      color: #fff;
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      outline: none;
+    }
+    .food-selector-container select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     #status {
       font-size: 0.9rem;
       color: #888;
+      margin-top: 2rem;
     }
 
     #status.is-controller {
@@ -217,7 +247,7 @@
     .history-info {
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
+      gap: 0.3rem;
     }
 
     .history-date {
@@ -229,6 +259,16 @@
       font-size: 1.25rem;
       font-weight: 500;
       color: #fff;
+    }
+    
+    .history-food {
+      font-size: 0.75rem;
+      background: rgba(255, 170, 0, 0.2);
+      color: #ffaa00;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      display: inline-block;
+      width: fit-content;
     }
     
     .history-delete {
@@ -290,6 +330,17 @@
         <button id="control-btn" disabled>Start</button>
         <button id="cancel-btn" class="hidden">Abbrechen</button>
       </div>
+      
+      <div class="food-selector-container">
+        <label for="food-select">Essen heute:</label>
+        <select id="food-select" onchange="handleFoodChange(this.value)">
+          <option value="Unbekannt">-- Bitte wählen --</option>
+          <option value="DB-Casino">DB-Casino</option>
+          <option value="Onda Chicken">Onda Chicken</option>
+          <option value="Selbstgemacht">Selbstgemacht</option>
+        </select>
+      </div>
+
       <div id="status">Verbinde...</div>
     </div>
 
@@ -301,6 +352,9 @@
       </div>
       <div class="chart-container">
         <canvas id="todChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="foodChart"></canvas>
       </div>
       <div class="chart-container">
         <canvas id="daysChart"></canvas>
@@ -336,7 +390,8 @@
       startTime: null,
       elapsed: 0,
       isController: false,
-      sessions: []
+      sessions: [],
+      dailyFood: {}
     };
     
     // Prevent overlapping requests and bugged double-clicks
@@ -352,6 +407,7 @@
     const statusEl = document.getElementById('status');
     const errorEl = document.getElementById('error');
     const historyListEl = document.getElementById('history-list');
+    const foodSelectEl = document.getElementById('food-select');
 
     // Chart Setup default config
     Chart.defaults.color = '#888';
@@ -374,8 +430,15 @@
       controlBtn.disabled = !state.isController || isFetching;
       cancelBtn.disabled = isFetching;
       controlBtn.textContent = state.running ? 'Stop' : 'Start';
+      foodSelectEl.disabled = !state.isController || isFetching;
       
-      // Update overall elapsed timer. It no longer ticks actively.
+      const todayStr = new Date().toLocaleDateString('de-DE');
+      if (state.dailyFood && state.dailyFood[todayStr]) {
+        foodSelectEl.value = state.dailyFood[todayStr];
+      } else {
+        foodSelectEl.value = "Unbekannt";
+      }
+      
       timerEl.textContent = formatTime(state.elapsed);
       
       if (state.running) {
@@ -407,12 +470,20 @@
       
       historyListEl.innerHTML = sorted.map(s => {
         const d = new Date(s.start);
-        const dateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const dateStr = d.toLocaleDateString('de-DE');
+        const longDateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        
+        let foodStr = '';
+        if (state.dailyFood && state.dailyFood[dateStr] && state.dailyFood[dateStr] !== 'Unbekannt') {
+          foodStr = `<div class="history-food">🍔 ${state.dailyFood[dateStr]}</div>`;
+        }
+
         return `
           <div class="history-item">
             <div class="history-info">
-              <div class="history-date">${dateStr}</div>
+              <div class="history-date">${longDateStr}</div>
               <div class="history-duration">${formatTime(s.duration)}</div>
+              ${foodStr}
             </div>
             ${state.isController ? `<button class="history-delete" onclick="handleAction('delete_session', '${s.id}')" title="Löschen">✕</button>` : ''}
           </div>
@@ -485,7 +556,49 @@
         }
       });
 
-      // 3. Days Chart (Last 7 days active)
+      // 3. Food Chart
+      let foodStats = {};
+      sessions.forEach(s => {
+        const dateStr = new Date(s.start).toLocaleDateString('de-DE');
+        const food = (state.dailyFood && state.dailyFood[dateStr] && state.dailyFood[dateStr] !== 'Unbekannt') ? state.dailyFood[dateStr] : 'Keine Angabe';
+        if (!foodStats[food]) foodStats[food] = { count: 0, duration: 0 };
+        foodStats[food].count++;
+        foodStats[food].duration += s.duration;
+      });
+
+      const foodLabels = Object.keys(foodStats);
+      initOrUpdateChart('foodChart', 'bar', {
+        labels: foodLabels,
+        datasets: [
+          {
+            label: 'Dauer (Min)',
+            data: foodLabels.map(f => foodStats[f].duration / 60000),
+            backgroundColor: 'rgba(255, 170, 0, 0.8)',
+            borderRadius: 4,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Anzahl',
+            data: foodLabels.map(f => foodStats[f].count),
+            backgroundColor: '#00d4ff',
+            borderRadius: 4,
+            yAxisID: 'y1'
+          }
+        ]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: 'Nach Essen', color: '#fff' },
+        },
+        scales: {
+          y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
+          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
+        }
+      });
+
+
+      // 4. Days Chart (Last 7 days active)
       const daysMap = {};
       sessions.forEach(s => {
         const d = new Date(s.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -530,7 +643,7 @@
         }
       });
 
-      // 4. Trend Chart (Cumulative Time over Time)
+      // 5. Trend Chart (Cumulative Time over Time)
       let cumulativeTime = 0;
       const trendData = [...sessions].sort((a,b) => a.start - b.start).map(s => {
         cumulativeTime += s.duration;
@@ -565,19 +678,20 @@
 
     // --- API POLLING & ACTIONS ---
     async function pollState() {
-      if (isFetching) return; // Skip polling if we are currently modifying state
+      if (isFetching) return; 
       try {
         const response = await fetch(`/api/state?clientId=${clientId}`);
         if (!response.ok) throw new Error('Server error');
         const data = await response.json();
         
-        const stateChanged = state.running !== data.running || state.elapsed !== data.elapsed || JSON.stringify(state.sessions) !== JSON.stringify(data.sessions);
+        const stateChanged = state.running !== data.running || state.elapsed !== data.elapsed || JSON.stringify(state.sessions) !== JSON.stringify(data.sessions) || JSON.stringify(state.dailyFood) !== JSON.stringify(data.dailyFood);
         
         state.running = data.running;
         state.startTime = data.startTime;
         state.elapsed = data.elapsed;
         state.isController = data.isController;
         state.sessions = data.sessions || [];
+        state.dailyFood = data.dailyFood || {};
         
         if (stateChanged) {
           updateUI();
@@ -585,6 +699,42 @@
         hideError();
       } catch (error) {
         showError();
+      }
+    }
+
+    async function handleFoodChange(value) {
+      if (isFetching) return;
+      isFetching = true;
+      const todayStr = new Date().toLocaleDateString('de-DE');
+      
+      // Optimistic update
+      if(!state.dailyFood) state.dailyFood = {};
+      state.dailyFood[todayStr] = value;
+      updateUI();
+      
+      try {
+        const response = await fetch('/api/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            clientId, 
+            action: 'set_food',
+            date: todayStr,
+            food: value
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.state) {
+            state.dailyFood = data.state.dailyFood || {};
+          }
+        }
+      } catch (error) {
+        showError();
+      } finally {
+        isFetching = false;
+        updateUI();
       }
     }
 
@@ -596,14 +746,13 @@
         if (!confirm('Möchtest du diesen Eintrag wirklich aus dem Verlauf löschen?')) return;
       }
       
-      // Optimistic UI updates to feel snappy and prevent double clicks
+      // Optimistic UI updates
       isFetching = true;
       if (action === 'start') {
         state.running = true;
         state.startTime = Date.now();
       } else if (action === 'stop' || action === 'cancel') {
         state.running = false;
-        // startTime left as is so the animation finishes nicely on stop
       }
       updateUI();
       
@@ -624,13 +773,14 @@
             state.startTime = data.state.startTime;
             state.elapsed = data.state.elapsed;
             state.sessions = data.state.sessions || [];
+            state.dailyFood = data.state.dailyFood || {};
           }
         }
       } catch (error) {
         showError();
       } finally {
         isFetching = false;
-        updateUI(); // Re-render with final source of truth from server
+        updateUI(); 
       }
     }
 
