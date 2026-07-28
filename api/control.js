@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { clientId, action } = req.body;
+    const { clientId, action, sessionId } = req.body;
 
     const state = await kv.get('stopwatch') || {
       running: false,
@@ -41,6 +41,13 @@ export default async function handler(req, res) {
     } else if (action === 'cancel') {
       state.running = false;
       state.startTime = null;
+    } else if (action === 'delete_session') {
+      const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex !== -1) {
+        const deletedDuration = state.sessions[sessionIndex].duration;
+        state.sessions.splice(sessionIndex, 1);
+        state.elapsed = Math.max(0, state.elapsed - deletedDuration);
+      }
     }
 
     await kv.set('stopwatch', state);
