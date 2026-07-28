@@ -427,10 +427,10 @@
     function hideError() { errorEl.classList.add('hidden'); }
 
     function updateUI() {
-      controlBtn.disabled = !state.isController || isFetching;
+      controlBtn.disabled = isFetching;
       cancelBtn.disabled = isFetching;
       controlBtn.textContent = state.running ? 'Stop' : 'Start';
-      foodSelectEl.disabled = !state.isController || isFetching;
+      foodSelectEl.disabled = isFetching;
       
       const todayStr = new Date().toLocaleDateString('de-DE');
       if (state.dailyFood && state.dailyFood[todayStr]) {
@@ -442,19 +442,14 @@
       timerEl.textContent = formatTime(state.elapsed);
       
       if (state.running) {
-        if(state.isController) cancelBtn.classList.remove('hidden');
+        cancelBtn.classList.remove('hidden');
       } else {
         sessionTimerEl.textContent = formatTime(0);
         cancelBtn.classList.add('hidden');
       }
 
-      if (state.isController) {
-        statusEl.textContent = 'Du bist der Controller';
-        statusEl.classList.add('is-controller');
-      } else {
-        statusEl.textContent = 'Beobachter';
-        statusEl.classList.remove('is-controller');
-      }
+      statusEl.textContent = 'Verbunden';
+      statusEl.classList.add('is-controller');
 
       renderHistory();
       renderCharts();
@@ -485,7 +480,7 @@
               <div class="history-duration">${formatTime(s.duration)}</div>
               ${foodStr}
             </div>
-            ${state.isController ? `<button class="history-delete" onclick="handleAction('delete_session', '${s.id}')" title="Löschen">✕</button>` : ''}
+            <button class="history-delete" onclick="handleAction('delete_session', '${s.id}')" title="Löschen">✕</button>
           </div>
         `;
       }).join('');
@@ -684,7 +679,11 @@
         if (!response.ok) throw new Error('Server error');
         const data = await response.json();
         
-        const stateChanged = state.running !== data.running || state.elapsed !== data.elapsed || JSON.stringify(state.sessions) !== JSON.stringify(data.sessions) || JSON.stringify(state.dailyFood) !== JSON.stringify(data.dailyFood);
+        const stateChanged = state.running !== data.running || 
+                             state.elapsed !== data.elapsed || 
+                             state.isController !== data.isController ||
+                             JSON.stringify(state.sessions) !== JSON.stringify(data.sessions) || 
+                             JSON.stringify(state.dailyFood) !== JSON.stringify(data.dailyFood);
         
         state.running = data.running;
         state.startTime = data.startTime;

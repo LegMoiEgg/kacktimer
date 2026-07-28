@@ -19,9 +19,8 @@ export default async function handler(req, res) {
     if (!state.sessions) state.sessions = [];
     if (!state.dailyFood) state.dailyFood = {};
 
-    if (clientId !== state.controllerId) {
-      return res.status(403).json({ success: false, error: 'Not the current controller' });
-    }
+    // Removed the controller restriction so multiple people can control it
+    // without stealing the session from each other.
 
     if (action === 'start') {
       state.running = true;
