@@ -1,0 +1,210 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Projektdateien und Vercel-Konfiguration erstellen": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290040368
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290046479
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290085424
+      }
+    ],
+    "2.1 GET-Endpunkt `api/state.js` implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041269
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290088838
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290135779
+      }
+    ],
+    "2.2 POST-Endpunkt `api/control.js` implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041346
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290094587
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290136437
+      }
+    ],
+    "3.1 KV-Fehlerbehandlung in beiden Endpunkten ergänzen": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041389
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290141729
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290165622
+      }
+    ],
+    "4. Checkpoint - Backend prüfen": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041418
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290180627
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290183377
+      }
+    ],
+    "5.1 HTML-Grundstruktur und Styling in `public/index.html` erstellen": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041450
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290196432
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290237995
+      }
+    ],
+    "5.2 JavaScript-Logik im Frontend implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041478
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290246882
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290302855
+      }
+    ],
+    "5.3 Fehlerbehandlung im Frontend implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041521
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290247585
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290303517
+      }
+    ],
+    "6.1 Gesamte Anwendung zusammenführen und finale Prüfung": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041550
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290307148
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290391208
+      }
+    ],
+    "7. Finaler Checkpoint": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290041582
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290394258
+      },
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290397066
+      }
+    ],
+    "1. Projektstruktur und Konfiguration aufsetzen": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290085456
+      }
+    ],
+    "2. Backend-API implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290136472
+      }
+    ],
+    "3. Fehlerbehandlung im Backend": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290165673
+      }
+    ],
+    "5. Frontend implementieren": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290303559
+      }
+    ],
+    "6. Integration und Abschluss": [
+      {
+        "executionId": "4da3c03a-3da7-49d9-ac90-c22ed0bc66aa",
+        "chatSessionId": "sess_39a4bfd3-5251-4e64-bdac-26323051b7cd",
+        "timestamp": 1784290391253
+      }
+    ]
+  }
+}
