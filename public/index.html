@@ -412,7 +412,8 @@
 
     Chart.defaults.color = '#888';
     Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    // Disable datalabels globally, enable per chart
+    // Register and disable datalabels globally, enable per chart
+    Chart.register(ChartDataLabels);
     Chart.defaults.plugins.datalabels = { display: false };
     // --- CATEGORY MANAGEMENT ---
     function toggleCategoryManager() {
@@ -829,7 +830,17 @@
         ]
       }, {
         responsive: true, maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Sessions pro Tag', color: '#fff' }, legend: { display: false } },
+        plugins: {
+          title: { display: true, text: 'Sessions pro Tag', color: '#fff' },
+          legend: { display: false },
+          datalabels: {
+            display: true,
+            color: '#fff',
+            font: { weight: 'bold', size: 11 },
+            anchor: 'center',
+            align: 'center'
+          }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#888', maxRotation: 45 } },
           y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
