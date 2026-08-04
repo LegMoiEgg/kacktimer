@@ -264,23 +264,17 @@
     .history-date { font-size: 0.85rem; color: #aaa; }
     .history-duration { font-size: 1.25rem; font-weight: 500; color: #fff; }
     .history-food {
-      font-size: 0.75rem;
-      background: rgba(255, 170, 0, 0.2);
-      color: #ffaa00;
-      padding: 0.2rem 0.5rem;
-      border-radius: 12px;
-      display: inline-block;
-      width: fit-content;
+      margin-top: 0.2rem;
     }
     .history-food select {
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 0.3rem 0.5rem;
+      background: #1a1a2e;
+      color: #fff;
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      padding: 0.4rem 0.6rem;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       outline: none;
-      font-weight: 500;
+      font-weight: 400;
     }
     .history-delete {
       background: transparent;
@@ -304,7 +298,8 @@
     <div class="sidebar left" id="history-sidebar">
       <div class="total-time-container">
         <div id="timer">00:00.00</div>
-        <div class="timer-label">Gesamtzeit (Gespeichert)</div>
+        <div class="timer-label">Min : Sek . Ms</div>
+        <div id="timer-hours" style="font-size: 1rem; color: #aaa; margin-top: 0.4rem;">0 Std 0 Min</div>
       </div>
       <h2>Historie</h2>
       <div id="history-list">
@@ -389,6 +384,7 @@
 
     // --- DOM ELEMENTS ---
     const timerEl = document.getElementById('timer');
+    const timerHoursEl = document.getElementById('timer-hours');
     const sessionTimerEl = document.getElementById('session-timer');
     const controlBtn = document.getElementById('control-btn');
     const cancelBtn = document.getElementById('cancel-btn');
@@ -555,6 +551,10 @@
       foodSelectEl.disabled = isFetching;
 
       timerEl.textContent = formatTime(state.elapsed);
+      const totalMinutes = Math.floor(state.elapsed / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      timerHoursEl.textContent = `${hours} Std ${mins} Min`;
 
       if (state.running) {
         cancelBtn.classList.remove('hidden');
@@ -654,31 +654,36 @@
         plugins: { title: { display: true, text: 'Übersicht', color: '#fff' }, legend: { display: false } }
       });
 
-      // 2. Time of Day - hourly distribution
-      const hourCounts = new Array(24).fill(0);
+      // 2. Time of Day - pie chart with 2h blocks
+      const timeBlocks = {
+        '6-8': 0, '8-10': 0, '10-12': 0, '12-14': 0,
+        '14-16': 0, '16-18': 0, '18-20': 0, '20-22': 0, '22-6': 0
+      };
       sessions.forEach(s => {
         const hour = new Date(s.start).getHours();
-        hourCounts[hour]++;
+        if (hour >= 6 && hour < 8) timeBlocks['6-8']++;
+        else if (hour >= 8 && hour < 10) timeBlocks['8-10']++;
+        else if (hour >= 10 && hour < 12) timeBlocks['10-12']++;
+        else if (hour >= 12 && hour < 14) timeBlocks['12-14']++;
+        else if (hour >= 14 && hour < 16) timeBlocks['14-16']++;
+        else if (hour >= 16 && hour < 18) timeBlocks['16-18']++;
+        else if (hour >= 18 && hour < 20) timeBlocks['18-20']++;
+        else if (hour >= 20 && hour < 22) timeBlocks['20-22']++;
+        else timeBlocks['22-6']++;
       });
-      const hourLabels = Array.from({length: 24}, (_, i) => `${i}:00`);
+      // Only show blocks that have data
+      const todLabels = Object.keys(timeBlocks).filter(k => timeBlocks[k] > 0);
+      const todData = todLabels.map(k => timeBlocks[k]);
+      const todColors = ['#4a9eff', '#00d4ff', '#00e6a0', '#88ff00', '#ffdd00', '#ffaa00', '#ff6b6b', '#ff4488', '#9944ff'];
 
-      initOrUpdateChart('todChart', 'bar', {
-        labels: hourLabels,
-        datasets: [{
-          label: 'Sessions',
-          data: hourCounts,
-          backgroundColor: hourCounts.map((_, i) => i < 6 ? '#4a5568' : i < 12 ? '#00d4ff' : i < 18 ? '#ffaa00' : '#ff6b6b'),
-          borderRadius: 2
-        }]
+      initOrUpdateChart('todChart', 'doughnut', {
+        labels: todLabels.map(l => l + ' Uhr'),
+        datasets: [{ data: todData, backgroundColor: todColors.slice(0, todLabels.length), borderWidth: 0 }]
       }, {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: 'Sessions nach Uhrzeit', color: '#fff' },
-          legend: { display: false }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 12, color: '#888' } },
-          y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' },
+          legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 } } }
         }
       });
 
