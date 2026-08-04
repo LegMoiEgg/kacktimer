@@ -345,7 +345,10 @@
     <div class="sidebar right" id="stats-sidebar">
       <h2>Statistiken</h2>
       <div class="chart-container"><canvas id="avgChart"></canvas></div>
-      <div class="chart-container"><canvas id="todChart"></canvas></div>
+      <div class="chart-container">
+        <button id="tod-toggle" onclick="toggleTodMode()" style="position:absolute;top:0;right:0;z-index:10;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;padding:0.3rem 0.6rem;border-radius:4px;font-size:0.7rem;cursor:pointer;">Anzahl / Dauer</button>
+        <canvas id="todChart"></canvas>
+      </div>
       <div class="chart-container"><canvas id="foodChart"></canvas></div>
       <div class="chart-container"><canvas id="daysChart"></canvas></div>
       <div class="chart-container"><canvas id="trendChart"></canvas></div>
@@ -381,6 +384,12 @@
     };
     let isFetching = false;
     let charts = {};
+    window.todMode = 'count'; // 'count' or 'duration'
+
+    function toggleTodMode() {
+      window.todMode = window.todMode === 'count' ? 'duration' : 'count';
+      renderCharts();
+    }
 
     // --- DOM ELEMENTS ---
     const timerEl = document.getElementById('timer');
@@ -636,7 +645,7 @@
       if (!state.sessions) return;
       const sessions = state.sessions;
 
-      // 1. Avg Time & Count
+      // 1. Avg Time & Count - with values in bars
       const count = sessions.length;
       const totalTime = sessions.reduce((acc, s) => acc + s.duration, 0);
       const avgTime = count > 0 ? totalTime / count : 0;
@@ -645,7 +654,7 @@
         labels: ['Gesamtanzahl', 'Ø Dauer (Min)'],
         datasets: [{
           label: 'Allgemein',
-          data: [count, avgTime / 60000],
+          data: [count, +(avgTime / 60000).toFixed(1)],
           backgroundColor: ['#00d4ff', '#ffaa00'],
           borderRadius: 4
         }]
@@ -654,35 +663,74 @@
         plugins: { title: { display: true, text: 'Übersicht', color: '#fff' }, legend: { display: false } }
       });
 
-      // 2. Time of Day - pie chart with 2h blocks
+      // Draw values on avgChart bars
+      if (charts['avgChart']) {
+        charts['avgChart'].options.animation = {
+          onComplete: function() {
+            const chart = charts['avgChart'];
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fff';
+            const meta = chart.getDatasetMeta(0);
+            meta.data.forEach((bar, index) => {
+              const val = chart.data.datasets[0].data[index];
+              const barHeight = bar.base - bar.y;
+              if (barHeight > 18) {
+                ctx.fillText(val, bar.x, bar.y + barHeight / 2);
+              } else {
+                ctx.fillText(val, bar.x, bar.y - 12);
+              }
+            });
+            ctx.restore();
+          }
+        };
+        charts['avgChart'].update();
+      }
+
+      // 2. Time of Day - doughnut with toggle (count / duration)
       const timeBlocks = {
-        '6-8': 0, '8-10': 0, '10-12': 0, '12-14': 0,
-        '14-16': 0, '16-18': 0, '18-20': 0, '20-22': 0, '22-6': 0
+        '6-8': { count: 0, duration: 0 }, '8-10': { count: 0, duration: 0 },
+        '10-12': { count: 0, duration: 0 }, '12-14': { count: 0, duration: 0 },
+        '14-16': { count: 0, duration: 0 }, '16-18': { count: 0, duration: 0 },
+        '18-20': { count: 0, duration: 0 }, '20-22': { count: 0, duration: 0 },
+        '22-6': { count: 0, duration: 0 }
       };
       sessions.forEach(s => {
         const hour = new Date(s.start).getHours();
-        if (hour >= 6 && hour < 8) timeBlocks['6-8']++;
-        else if (hour >= 8 && hour < 10) timeBlocks['8-10']++;
-        else if (hour >= 10 && hour < 12) timeBlocks['10-12']++;
-        else if (hour >= 12 && hour < 14) timeBlocks['12-14']++;
-        else if (hour >= 14 && hour < 16) timeBlocks['14-16']++;
-        else if (hour >= 16 && hour < 18) timeBlocks['16-18']++;
-        else if (hour >= 18 && hour < 20) timeBlocks['18-20']++;
-        else if (hour >= 20 && hour < 22) timeBlocks['20-22']++;
-        else timeBlocks['22-6']++;
+        let key;
+        if (hour >= 6 && hour < 8) key = '6-8';
+        else if (hour >= 8 && hour < 10) key = '8-10';
+        else if (hour >= 10 && hour < 12) key = '10-12';
+        else if (hour >= 12 && hour < 14) key = '12-14';
+        else if (hour >= 14 && hour < 16) key = '14-16';
+        else if (hour >= 16 && hour < 18) key = '16-18';
+        else if (hour >= 18 && hour < 20) key = '18-20';
+        else if (hour >= 20 && hour < 22) key = '20-22';
+        else key = '22-6';
+        timeBlocks[key].count++;
+        timeBlocks[key].duration += s.duration;
       });
-      // Only show blocks that have data
-      const todLabels = Object.keys(timeBlocks).filter(k => timeBlocks[k] > 0);
-      const todData = todLabels.map(k => timeBlocks[k]);
+
+      const todAllKeys = Object.keys(timeBlocks).filter(k => timeBlocks[k].count > 0);
       const todColors = ['#4a9eff', '#00d4ff', '#00e6a0', '#88ff00', '#ffdd00', '#ffaa00', '#ff6b6b', '#ff4488', '#9944ff'];
+      const showDuration = window.todMode === 'duration';
+
+      const todData = todAllKeys.map(k => showDuration ? +(timeBlocks[k].duration / 60000).toFixed(1) : timeBlocks[k].count);
+      const todChartLabels = todAllKeys.map((k, i) => {
+        const val = todData[i];
+        return k + ' Uhr (' + (showDuration ? val + ' Min' : val + 'x') + ')';
+      });
 
       initOrUpdateChart('todChart', 'doughnut', {
-        labels: todLabels.map(l => l + ' Uhr'),
-        datasets: [{ data: todData, backgroundColor: todColors.slice(0, todLabels.length), borderWidth: 0 }]
+        labels: todChartLabels,
+        datasets: [{ data: todData, backgroundColor: todColors.slice(0, todAllKeys.length), borderWidth: 0 }]
       }, {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' },
+          title: { display: true, text: showDuration ? 'Dauer nach Tageszeit' : 'Sessions nach Tageszeit', color: '#fff' },
           legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 } } }
         }
       });
