@@ -247,6 +247,9 @@
 
     /* History Styles */
     #history-list { flex: 1; overflow-y: auto; }
+    #history-list::-webkit-scrollbar { width: 8px; }
+    #history-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+    #history-list::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 4px; }
     .history-item {
       background: rgba(0, 212, 255, 0.05);
       border-left: 4px solid #00d4ff;
@@ -718,10 +721,10 @@
       const todColors = ['#4a9eff', '#00d4ff', '#00e6a0', '#88ff00', '#ffdd00', '#ffaa00', '#ff6b6b', '#ff4488', '#9944ff'];
       const showDuration = window.todMode === 'duration';
 
-      const todData = todAllKeys.map(k => showDuration ? +(timeBlocks[k].duration / 60000).toFixed(1) : timeBlocks[k].count);
+      const todData = todAllKeys.map(k => showDuration ? +((timeBlocks[k].duration / timeBlocks[k].count) / 60000).toFixed(1) : timeBlocks[k].count);
       const todChartLabels = todAllKeys.map((k, i) => {
         const val = todData[i];
-        return k + ' Uhr (' + (showDuration ? val + ' Min' : val + 'x') + ')';
+        return k + ' Uhr (' + (showDuration ? 'Ø ' + val + ' Min' : val + 'x') + ')';
       });
 
       initOrUpdateChart('todChart', 'doughnut', {
@@ -730,7 +733,7 @@
       }, {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: showDuration ? 'Dauer nach Tageszeit' : 'Sessions nach Tageszeit', color: '#fff' },
+          title: { display: true, text: showDuration ? 'Ø Dauer nach Tageszeit' : 'Sessions nach Tageszeit', color: '#fff' },
           legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 } } }
         }
       });
