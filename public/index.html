@@ -7,12 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" href="/kacke.webp">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background-color: #1a1a2e;
       color: #ffffff;
@@ -20,7 +15,6 @@
       min-height: 100vh;
       display: flex;
     }
-
     .layout-grid {
       display: flex;
       width: 100%;
@@ -30,7 +24,6 @@
       padding: 2rem;
       min-height: 100vh;
     }
-
     .sidebar {
       flex: 1;
       background: rgba(255,255,255,0.02);
@@ -41,19 +34,9 @@
       display: flex;
       flex-direction: column;
     }
-
-    .sidebar::-webkit-scrollbar {
-      width: 8px;
-    }
-    .sidebar::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.05);
-      border-radius: 4px;
-    }
-    .sidebar::-webkit-scrollbar-thumb {
-      background: rgba(0, 212, 255, 0.3);
-      border-radius: 4px;
-    }
-
+    .sidebar::-webkit-scrollbar { width: 8px; }
+    .sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 4px; }
     .main {
       flex: 1.5;
       display: flex;
@@ -61,7 +44,6 @@
       justify-content: center;
       align-items: center;
     }
-
     h2 {
       color: #00d4ff;
       margin-bottom: 1.5rem;
@@ -71,8 +53,6 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
-
-    /* Left Sidebar Total Time Styles */
     .total-time-container {
       text-align: center;
       margin-bottom: 2rem;
@@ -94,8 +74,6 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
-
-    /* Main Area Session Timer */
     #session-timer {
       font-size: clamp(3rem, 10vw, 7rem);
       font-weight: 300;
@@ -104,7 +82,6 @@
       margin-bottom: 0.5rem;
       text-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
     }
-    
     .session-timer-label {
       font-size: 1.2rem;
       color: #ffaa00;
@@ -113,13 +90,11 @@
       margin-bottom: 2rem;
       text-align: center;
     }
-
     .controls {
       display: flex;
       gap: 1rem;
       margin-bottom: 2rem;
     }
-
     #control-btn, #cancel-btn {
       border: none;
       padding: 1rem 3rem;
@@ -129,36 +104,12 @@
       cursor: pointer;
       transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
     }
-
-    #control-btn {
-      background-color: #00d4ff;
-      color: #1a1a2e;
-    }
-
-    #control-btn:hover:not(:disabled) {
-      background-color: #00b8e6;
-      transform: translateY(-1px);
-    }
-
-    #cancel-btn {
-      background-color: #ff4444;
-      color: #ffffff;
-    }
-
-    #cancel-btn:hover:not(:disabled) {
-      background-color: #cc0000;
-      transform: translateY(-1px);
-    }
-
-    #control-btn:active:not(:disabled), #cancel-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    #control-btn:disabled, #cancel-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
+    #control-btn { background-color: #00d4ff; color: #1a1a2e; }
+    #control-btn:hover:not(:disabled) { background-color: #00b8e6; transform: translateY(-1px); }
+    #cancel-btn { background-color: #ff4444; color: #ffffff; }
+    #cancel-btn:hover:not(:disabled) { background-color: #cc0000; transform: translateY(-1px); }
+    #control-btn:active:not(:disabled), #cancel-btn:active:not(:disabled) { transform: translateY(0); }
+    #control-btn:disabled, #cancel-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     /* Food Selector */
     .food-selector-container {
       margin-top: 1rem;
@@ -166,14 +117,16 @@
       padding: 1rem 1.5rem;
       border-radius: 8px;
       display: flex;
-      align-items: center;
-      gap: 1rem;
+      flex-direction: column;
+      gap: 0.75rem;
       border: 1px solid rgba(0, 212, 255, 0.2);
     }
-    .food-selector-container label {
-      color: #00d4ff;
-      font-weight: 500;
+    .food-selector-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
+    .food-selector-container label { color: #00d4ff; font-weight: 500; }
     .food-selector-container select {
       background: #1a1a2e;
       color: #fff;
@@ -183,21 +136,98 @@
       font-size: 1rem;
       outline: none;
     }
-    .food-selector-container select:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .food-selector-container select:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    #status {
-      font-size: 0.9rem;
-      color: #888;
-      margin-top: 2rem;
-    }
-
-    #status.is-controller {
+    /* Category Manager */
+    .category-toggle-btn {
+      background: transparent;
+      border: 1px solid rgba(0, 212, 255, 0.4);
       color: #00d4ff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
     }
-
+    .category-toggle-btn:hover { background: rgba(0, 212, 255, 0.1); }
+    .category-manager {
+      background: rgba(0, 212, 255, 0.03);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 6px;
+      padding: 1rem;
+      display: none;
+    }
+    .category-manager.visible { display: block; }
+    .category-manager h3 {
+      color: #00d4ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .category-list { list-style: none; margin-bottom: 0.75rem; }
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .category-item span { flex: 1; font-size: 0.9rem; }
+    .category-item input[type="text"] {
+      flex: 1;
+      background: #1a1a2e;
+      color: #fff;
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      padding: 0.3rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+    .cat-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+    .cat-btn.edit { color: #ffaa00; }
+    .cat-btn.delete { color: #ff4444; }
+    .cat-btn.save { color: #00ff88; }
+    .cat-btn:hover { background: rgba(255,255,255,0.1); }
+    .category-add {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .category-add input {
+      flex: 1;
+      background: #1a1a2e;
+      color: #fff;
+      border: 1px solid rgba(0, 212, 255, 0.5);
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .category-add button {
+      background: #00d4ff;
+      color: #1a1a2e;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .category-add button:hover { background: #00b8e6; }
+    .category-error {
+      color: #ff4444;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      min-height: 1rem;
+    }
+    #status { font-size: 0.9rem; color: #888; margin-top: 2rem; }
+    #status.is-controller { color: #00d4ff; }
     #error {
       position: fixed;
       top: 1.5rem;
@@ -212,22 +242,11 @@
       z-index: 100;
       transition: opacity 0.3s;
     }
-
-    #error.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .hidden {
-      display: none !important;
-    }
+    #error.hidden { opacity: 0; pointer-events: none; }
+    .hidden { display: none !important; }
 
     /* History Styles */
-    #history-list {
-      flex: 1;
-      overflow-y: auto;
-    }
-    
+    #history-list { flex: 1; overflow-y: auto; }
     .history-item {
       background: rgba(0, 212, 255, 0.05);
       border-left: 4px solid #00d4ff;
@@ -240,28 +259,10 @@
       align-items: center;
       transition: background 0.2s;
     }
-    
-    .history-item:hover {
-      background: rgba(0, 212, 255, 0.1);
-    }
-
-    .history-info {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    .history-date {
-      font-size: 0.85rem;
-      color: #aaa;
-    }
-
-    .history-duration {
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: #fff;
-    }
-    
+    .history-item:hover { background: rgba(0, 212, 255, 0.1); }
+    .history-info { display: flex; flex-direction: column; gap: 0.3rem; }
+    .history-date { font-size: 0.85rem; color: #aaa; }
+    .history-duration { font-size: 1.25rem; font-weight: 500; color: #fff; }
     .history-food {
       font-size: 0.75rem;
       background: rgba(255, 170, 0, 0.2);
@@ -271,7 +272,15 @@
       display: inline-block;
       width: fit-content;
     }
-    
+    .history-food select {
+      background: rgba(255, 170, 0, 0.15);
+      color: #ffaa00;
+      border: 1px solid rgba(255, 170, 0, 0.4);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      outline: none;
+    }
     .history-delete {
       background: transparent;
       border: none;
@@ -282,31 +291,13 @@
       transition: opacity 0.2s, transform 0.1s;
       padding: 0.5rem;
     }
-    
-    .history-delete:hover {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
-    .history-empty {
-      text-align: center;
-      color: #666;
-      font-style: italic;
-      margin-top: 2rem;
-    }
-
-    /* Chart Styles */
-    .chart-container {
-      margin-bottom: 2rem;
-      position: relative;
-      height: 250px;
-      width: 100%;
-    }
+    .history-delete:hover { opacity: 1; transform: scale(1.1); }
+    .history-empty { text-align: center; color: #666; font-style: italic; margin-top: 2rem; }
+    .chart-container { margin-bottom: 2rem; position: relative; height: 250px; width: 100%; }
   </style>
 </head>
 <body>
   <div id="error" class="hidden">Verbindung unterbrochen</div>
-  
   <div class="layout-grid">
     <!-- Left Sidebar: Total Time & History -->
     <div class="sidebar left" id="history-sidebar">
@@ -333,14 +324,22 @@
       </div>
       
       <div class="food-selector-container">
-        <label for="food-select">Essen heute:</label>
-        <select id="food-select" onchange="handleFoodChange(this.value)">
-          <option value="Unbekannt">-- Bitte wählen --</option>
-          <option value="DB-Casino">DB-Casino</option>
-          <option value="Onda Chicken">Onda Chicken</option>
-          <option value="Selbstgemacht">Selbstgemacht</option>
-          <option value="Penny">Penny</option>
-        </select>
+        <div class="food-selector-row">
+          <label for="food-select">Essen:</label>
+          <select id="food-select">
+            <option value="Unbekannt">-- Bitte wählen --</option>
+          </select>
+          <button class="category-toggle-btn" onclick="toggleCategoryManager()">Kategorien verwalten</button>
+        </div>
+        <div id="category-manager" class="category-manager">
+          <h3>Kategorien</h3>
+          <ul id="category-list" class="category-list"></ul>
+          <div class="category-add">
+            <input type="text" id="new-category-input" placeholder="Neue Kategorie..." maxlength="50">
+            <button onclick="addCategory()">Hinzufügen</button>
+          </div>
+          <div id="category-error" class="category-error"></div>
+        </div>
       </div>
 
       <div id="status">Verbinde...</div>
@@ -349,24 +348,13 @@
     <!-- Right Sidebar: Statistics -->
     <div class="sidebar right" id="stats-sidebar">
       <h2>Statistiken</h2>
-      <div class="chart-container">
-        <canvas id="avgChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="todChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="foodChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="daysChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="trendChart"></canvas>
-      </div>
+      <div class="chart-container"><canvas id="avgChart"></canvas></div>
+      <div class="chart-container"><canvas id="todChart"></canvas></div>
+      <div class="chart-container"><canvas id="foodChart"></canvas></div>
+      <div class="chart-container"><canvas id="daysChart"></canvas></div>
+      <div class="chart-container"><canvas id="trendChart"></canvas></div>
     </div>
   </div>
-
   <script>
     // --- UTILS ---
     function generateUUID() {
@@ -393,12 +381,9 @@
       elapsed: 0,
       isController: false,
       sessions: [],
-      dailyFood: {}
+      categories: []
     };
-    
-    // Prevent overlapping requests and bugged double-clicks
     let isFetching = false;
-
     let charts = {};
 
     // --- DOM ELEMENTS ---
@@ -410,11 +395,145 @@
     const errorEl = document.getElementById('error');
     const historyListEl = document.getElementById('history-list');
     const foodSelectEl = document.getElementById('food-select');
+    const categoryManagerEl = document.getElementById('category-manager');
+    const categoryListEl = document.getElementById('category-list');
+    const newCategoryInput = document.getElementById('new-category-input');
+    const categoryErrorEl = document.getElementById('category-error');
 
-    // Chart Setup default config
     Chart.defaults.color = '#888';
     Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    // --- CATEGORY MANAGEMENT ---
+    function toggleCategoryManager() {
+      categoryManagerEl.classList.toggle('visible');
+    }
 
+    function renderCategories() {
+      // Update dropdown
+      const currentVal = foodSelectEl.value;
+      foodSelectEl.innerHTML = '<option value="Unbekannt">-- Bitte wählen --</option>';
+      state.categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        foodSelectEl.appendChild(opt);
+      });
+      if (state.categories.includes(currentVal)) {
+        foodSelectEl.value = currentVal;
+      }
+
+      // Update category list in manager
+      categoryListEl.innerHTML = '';
+      state.categories.forEach(cat => {
+        const li = document.createElement('li');
+        li.className = 'category-item';
+        li.innerHTML = `
+          <span>${cat}</span>
+          <button class="cat-btn edit" onclick="startEditCategory('${cat.replace(/'/g, "\\'")}')" title="Bearbeiten">✏️</button>
+          <button class="cat-btn delete" onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" title="Löschen">🗑️</button>
+        `;
+        categoryListEl.appendChild(li);
+      });
+    }
+
+    function startEditCategory(oldName) {
+      const items = categoryListEl.querySelectorAll('.category-item');
+      items.forEach(item => {
+        const span = item.querySelector('span');
+        if (span && span.textContent === oldName) {
+          item.innerHTML = `
+            <input type="text" value="${oldName}" maxlength="50" id="edit-cat-input">
+            <button class="cat-btn save" onclick="saveEditCategory('${oldName.replace(/'/g, "\\'")}')">✓</button>
+            <button class="cat-btn delete" onclick="renderCategories()">✕</button>
+          `;
+          item.querySelector('input').focus();
+          item.querySelector('input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') saveEditCategory(oldName);
+            if (e.key === 'Escape') renderCategories();
+          });
+        }
+      });
+    }
+
+    async function saveEditCategory(oldName) {
+      const input = document.getElementById('edit-cat-input');
+      if (!input) return;
+      const newName = input.value.trim();
+      if (!newName) { showCategoryError('Name darf nicht leer sein'); return; }
+      if (newName === oldName) { renderCategories(); return; }
+
+      try {
+        const res = await fetch('/api/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, action: 'rename_category', oldName, newName })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          showCategoryError(data.error || 'Fehler beim Umbenennen');
+          return;
+        }
+        state.categories = data.categories || state.categories;
+        if (data.state) state.sessions = data.state.sessions || state.sessions;
+        renderCategories();
+        renderHistory();
+        showCategoryError('');
+      } catch (e) {
+        showCategoryError('Verbindungsfehler');
+      }
+    }
+
+    async function addCategory() {
+      const name = newCategoryInput.value.trim();
+      if (!name) { showCategoryError('Name darf nicht leer sein'); return; }
+
+      try {
+        const res = await fetch('/api/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, action: 'add_category', categoryName: name })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          showCategoryError(data.error || 'Fehler beim Erstellen');
+          return;
+        }
+        state.categories = data.categories || state.categories;
+        newCategoryInput.value = '';
+        renderCategories();
+        showCategoryError('');
+      } catch (e) {
+        showCategoryError('Verbindungsfehler');
+      }
+    }
+
+    async function deleteCategory(name) {
+      if (!confirm(`Kategorie "${name}" wirklich löschen?`)) return;
+      try {
+        const res = await fetch('/api/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, action: 'delete_category', categoryName: name })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          showCategoryError(data.error || 'Fehler beim Löschen');
+          return;
+        }
+        state.categories = data.categories || state.categories;
+        renderCategories();
+        showCategoryError('');
+      } catch (e) {
+        showCategoryError('Verbindungsfehler');
+      }
+    }
+
+    function showCategoryError(msg) {
+      categoryErrorEl.textContent = msg;
+    }
+
+    newCategoryInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addCategory();
+    });
     // --- RENDER FUNCTIONS ---
     function updateDisplay() {
       if (state.running && state.startTime) {
@@ -433,16 +552,9 @@
       cancelBtn.disabled = isFetching;
       controlBtn.textContent = state.running ? 'Stop' : 'Start';
       foodSelectEl.disabled = isFetching;
-      
-      const todayStr = new Date().toLocaleDateString('de-DE');
-      if (state.dailyFood && state.dailyFood[todayStr]) {
-        foodSelectEl.value = state.dailyFood[todayStr];
-      } else {
-        foodSelectEl.value = "Unbekannt";
-      }
-      
+
       timerEl.textContent = formatTime(state.elapsed);
-      
+
       if (state.running) {
         cancelBtn.classList.remove('hidden');
       } else {
@@ -453,6 +565,7 @@
       statusEl.textContent = 'Verbunden';
       statusEl.classList.add('is-controller');
 
+      renderCategories();
       renderHistory();
       renderCharts();
     }
@@ -464,23 +577,26 @@
       }
 
       const sorted = [...state.sessions].sort((a, b) => b.start - a.start);
-      
+
       historyListEl.innerHTML = sorted.map(s => {
         const d = new Date(s.start);
-        const dateStr = d.toLocaleDateString('de-DE');
         const longDateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        
-        let foodStr = '';
-        if (state.dailyFood && state.dailyFood[dateStr] && state.dailyFood[dateStr] !== 'Unbekannt') {
-          foodStr = `<div class="history-food">🍔 ${state.dailyFood[dateStr]}</div>`;
-        }
+        const foodVal = s.food || 'Unbekannt';
+
+        // Build food select options for this session
+        let foodOptions = '<option value="Unbekannt"' + (foodVal === 'Unbekannt' ? ' selected' : '') + '>-- Keine --</option>';
+        state.categories.forEach(cat => {
+          foodOptions += `<option value="${cat}"${cat === foodVal ? ' selected' : ''}>${cat}</option>`;
+        });
 
         return `
           <div class="history-item">
             <div class="history-info">
               <div class="history-date">${longDateStr}</div>
               <div class="history-duration">${formatTime(s.duration)}</div>
-              ${foodStr}
+              <div class="history-food">
+                <select onchange="updateSessionFood('${s.id}', this.value)">${foodOptions}</select>
+              </div>
             </div>
             <button class="history-delete" onclick="handleAction('delete_session', '${s.id}')" title="Löschen">✕</button>
           </div>
@@ -488,6 +604,22 @@
       }).join('');
     }
 
+    async function updateSessionFood(sessionId, food) {
+      try {
+        const res = await fetch('/api/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId, action: 'update_session_food', sessionId, food })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.state) {
+          state.sessions = data.state.sessions || state.sessions;
+          renderCharts();
+        }
+      } catch (e) {
+        showError();
+      }
+    }
     function initOrUpdateChart(id, type, data, options) {
       const ctx = document.getElementById(id).getContext('2d');
       if (charts[id]) {
@@ -507,7 +639,7 @@
       const count = sessions.length;
       const totalTime = sessions.reduce((acc, s) => acc + s.duration, 0);
       const avgTime = count > 0 ? totalTime / count : 0;
-      
+
       initOrUpdateChart('avgChart', 'bar', {
         labels: ['Gesamtanzahl', 'Ø Dauer (Min)'],
         datasets: [{
@@ -517,47 +649,31 @@
           borderRadius: 4
         }]
       }, {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: 'Übersicht', color: '#fff' },
-          legend: { display: false }
-        }
+        responsive: true, maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'Übersicht', color: '#fff' }, legend: { display: false } }
       });
 
       // 2. Time of Day
       let todCounts = { 'Vor 12 Uhr': 0, '12 bis 17 Uhr': 0, '17 bis 24 Uhr': 0 };
-      
       sessions.forEach(s => {
         const hour = new Date(s.start).getHours();
-        let key = '';
-        if (hour < 12) key = 'Vor 12 Uhr';
-        else if (hour < 17) key = '12 bis 17 Uhr';
-        else key = '17 bis 24 Uhr';
-        todCounts[key]++;
+        if (hour < 12) todCounts['Vor 12 Uhr']++;
+        else if (hour < 17) todCounts['12 bis 17 Uhr']++;
+        else todCounts['17 bis 24 Uhr']++;
       });
 
       initOrUpdateChart('todChart', 'pie', {
         labels: Object.keys(todCounts),
-        datasets: [{
-          data: Object.values(todCounts),
-          backgroundColor: ['#00d4ff', '#ffaa00', '#ff4444'],
-          borderWidth: 0
-        }]
+        datasets: [{ data: Object.values(todCounts), backgroundColor: ['#00d4ff', '#ffaa00', '#ff4444'], borderWidth: 0 }]
       }, {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' },
-          legend: { position: 'bottom', labels: { color: '#888' } }
-        }
+        responsive: true, maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' }, legend: { position: 'bottom', labels: { color: '#888' } } }
       });
 
-      // 3. Food Chart
+      // 3. Food Chart - NOW USES session.food
       let foodStats = {};
       sessions.forEach(s => {
-        const dateStr = new Date(s.start).toLocaleDateString('de-DE');
-        const food = (state.dailyFood && state.dailyFood[dateStr] && state.dailyFood[dateStr] !== 'Unbekannt') ? state.dailyFood[dateStr] : 'Keine Angabe';
+        const food = (s.food && s.food !== 'Unbekannt') ? s.food : 'Keine Angabe';
         if (!foodStats[food]) foodStats[food] = { count: 0, duration: 0 };
         foodStats[food].count++;
         foodStats[food].duration += s.duration;
@@ -567,39 +683,22 @@
       initOrUpdateChart('foodChart', 'bar', {
         labels: foodLabels,
         datasets: [
-          {
-            label: 'Dauer (Min)',
-            data: foodLabels.map(f => foodStats[f].duration / 60000),
-            backgroundColor: 'rgba(255, 170, 0, 0.8)',
-            borderRadius: 4,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Anzahl',
-            data: foodLabels.map(f => foodStats[f].count),
-            backgroundColor: '#00d4ff',
-            borderRadius: 4,
-            yAxisID: 'y1'
-          }
+          { label: 'Dauer (Min)', data: foodLabels.map(f => foodStats[f].duration / 60000), backgroundColor: 'rgba(255, 170, 0, 0.8)', borderRadius: 4, yAxisID: 'y' },
+          { label: 'Anzahl', data: foodLabels.map(f => foodStats[f].count), backgroundColor: '#00d4ff', borderRadius: 4, yAxisID: 'y1' }
         ]
       }, {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: 'Nach Essen', color: '#fff' },
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'Nach Essen', color: '#fff' } },
         scales: {
           y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
           y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
         }
       });
-
-
-      // 4. Days Chart (Last 7 days active)
+      // 4. Days Chart
       const daysMap = {};
       sessions.forEach(s => {
         const d = new Date(s.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-        if(!daysMap[d]) daysMap[d] = { count: 0, duration: 0 };
+        if (!daysMap[d]) daysMap[d] = { count: 0, duration: 0 };
         daysMap[d].count++;
         daysMap[d].duration += s.duration;
       });
@@ -610,90 +709,58 @@
       initOrUpdateChart('daysChart', 'line', {
         labels: dayLabels,
         datasets: [
-          {
-            label: 'Dauer (Min)',
-            data: dayDurations,
-            borderColor: '#ffaa00',
-            backgroundColor: 'rgba(255, 170, 0, 0.1)',
-            yAxisID: 'y',
-            fill: true,
-            tension: 0.3
-          },
-          {
-            label: 'Anzahl',
-            data: dayCounts,
-            borderColor: '#00d4ff',
-            backgroundColor: '#00d4ff',
-            type: 'bar',
-            yAxisID: 'y1'
-          }
+          { label: 'Dauer (Min)', data: dayDurations, borderColor: '#ffaa00', backgroundColor: 'rgba(255, 170, 0, 0.1)', yAxisID: 'y', fill: true, tension: 0.3 },
+          { label: 'Anzahl', data: dayCounts, borderColor: '#00d4ff', backgroundColor: '#00d4ff', type: 'bar', yAxisID: 'y1' }
         ]
       }, {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: 'Aktivität pro Tag', color: '#fff' }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'Aktivität pro Tag', color: '#fff' } },
         scales: {
           y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
           y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
         }
       });
 
-      // 5. Trend Chart (Cumulative Time over Time)
+      // 5. Trend Chart
       let cumulativeTime = 0;
-      const trendData = [...sessions].sort((a,b) => a.start - b.start).map(s => {
+      const trendData = [...sessions].sort((a, b) => a.start - b.start).map(s => {
         cumulativeTime += s.duration;
-        return {
-          x: new Date(s.start).toLocaleDateString('de-DE'),
-          y: cumulativeTime / 60000 
-        };
+        return { x: new Date(s.start).toLocaleDateString('de-DE'), y: cumulativeTime / 60000 };
       });
 
       initOrUpdateChart('trendChart', 'line', {
         labels: trendData.map(d => d.x),
         datasets: [{
-          label: 'Gesamtzeit (Min)',
-          data: trendData.map(d => d.y),
-          borderColor: '#00d4ff',
-          backgroundColor: 'rgba(0, 212, 255, 0.1)',
-          fill: true,
-          tension: 0.4
+          label: 'Gesamtzeit (Min)', data: trendData.map(d => d.y),
+          borderColor: '#00d4ff', backgroundColor: 'rgba(0, 212, 255, 0.1)', fill: true, tension: 0.4
         }]
       }, {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: { display: true, text: 'Gesamtzeit-Trend', color: '#fff' }
-        },
-        scales: {
-          x: { ticks: { maxTicksLimit: 7 } },
-          y: { grid: { color: 'rgba(255,255,255,0.05)' } }
-        }
+        responsive: true, maintainAspectRatio: false,
+        plugins: { title: { display: true, text: 'Gesamtzeit-Trend', color: '#fff' } },
+        scales: { x: { ticks: { maxTicksLimit: 7 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } }
       });
     }
-
     // --- API POLLING & ACTIONS ---
     async function pollState() {
-      if (isFetching) return; 
+      if (isFetching) return;
       try {
         const response = await fetch(`/api/state?clientId=${clientId}`);
         if (!response.ok) throw new Error('Server error');
         const data = await response.json();
-        
-        const stateChanged = state.running !== data.running || 
-                             state.elapsed !== data.elapsed || 
+
+        const stateChanged = state.running !== data.running ||
+                             state.elapsed !== data.elapsed ||
                              state.isController !== data.isController ||
-                             JSON.stringify(state.sessions) !== JSON.stringify(data.sessions) || 
-                             JSON.stringify(state.dailyFood) !== JSON.stringify(data.dailyFood);
-        
+                             JSON.stringify(state.sessions) !== JSON.stringify(data.sessions) ||
+                             JSON.stringify(state.categories) !== JSON.stringify(data.categories);
+
         state.running = data.running;
         state.startTime = data.startTime;
         state.elapsed = data.elapsed;
         state.isController = data.isController;
         state.sessions = data.sessions || [];
-        state.dailyFood = data.dailyFood || {};
-        
+        state.categories = data.categories || [];
+
         if (stateChanged) {
           updateUI();
         }
@@ -703,32 +770,46 @@
       }
     }
 
-    async function handleFoodChange(value) {
+    async function handleAction(action, targetSessionId = null) {
       if (isFetching) return;
+
+      if (action === 'delete_session') {
+        if (!confirm('Möchtest du diesen Eintrag wirklich aus dem Verlauf löschen?')) return;
+      }
+
       isFetching = true;
-      const todayStr = new Date().toLocaleDateString('de-DE');
-      
-      // Optimistic update
-      if(!state.dailyFood) state.dailyFood = {};
-      state.dailyFood[todayStr] = value;
+      if (action === 'start') {
+        state.running = true;
+        state.startTime = Date.now();
+      } else if (action === 'stop' || action === 'cancel') {
+        state.running = false;
+      }
       updateUI();
-      
+
       try {
+        const payload = { clientId, action };
+        if (targetSessionId) payload.sessionId = targetSessionId;
+        // Send selected food when stopping
+        if (action === 'stop') {
+          payload.food = foodSelectEl.value;
+        }
+
         const response = await fetch('/api/control', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            clientId, 
-            action: 'set_food',
-            date: todayStr,
-            food: value
-          })
+          body: JSON.stringify(payload)
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.state) {
-            state.dailyFood = data.state.dailyFood || {};
+            state.running = data.state.running;
+            state.startTime = data.state.startTime;
+            state.elapsed = data.state.elapsed;
+            state.sessions = data.state.sessions || [];
+          }
+          if (data.categories) {
+            state.categories = data.categories;
           }
         }
       } catch (error) {
@@ -739,62 +820,16 @@
       }
     }
 
-    async function handleAction(action, targetSessionId = null) {
-      if (isFetching) return;
-      
-      // Confirmation for delete
-      if (action === 'delete_session') {
-        if (!confirm('Möchtest du diesen Eintrag wirklich aus dem Verlauf löschen?')) return;
-      }
-      
-      // Optimistic UI updates
-      isFetching = true;
-      if (action === 'start') {
-        state.running = true;
-        state.startTime = Date.now();
-      } else if (action === 'stop' || action === 'cancel') {
-        state.running = false;
-      }
-      updateUI();
-      
-      try {
-        const payload = { clientId, action };
-        if (targetSessionId) payload.sessionId = targetSessionId;
-        
-        const response = await fetch('/api/control', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.state) {
-            state.running = data.state.running;
-            state.startTime = data.state.startTime;
-            state.elapsed = data.state.elapsed;
-            state.sessions = data.state.sessions || [];
-            state.dailyFood = data.state.dailyFood || {};
-          }
-        }
-      } catch (error) {
-        showError();
-      } finally {
-        isFetching = false;
-        updateUI(); 
-      }
-    }
-
     controlBtn.addEventListener('click', () => handleAction(state.running ? 'stop' : 'start'));
     cancelBtn.addEventListener('click', () => {
-      if(confirm('Aktuelle Session wirklich abbrechen? Diese Zeit wird nicht gespeichert.')) {
+      if (confirm('Aktuelle Session wirklich abbrechen? Diese Zeit wird nicht gespeichert.')) {
         handleAction('cancel');
       }
     });
 
     // --- INIT ---
     pollState();
-    setInterval(pollState, 500); 
+    setInterval(pollState, 500);
     requestAnimationFrame(updateDisplay);
   </script>
 </body>
