@@ -273,13 +273,14 @@
       width: fit-content;
     }
     .history-food select {
-      background: rgba(255, 170, 0, 0.15);
-      color: #ffaa00;
-      border: 1px solid rgba(255, 170, 0, 0.4);
-      padding: 0.2rem 0.4rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.3rem 0.5rem;
       border-radius: 4px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       outline: none;
+      font-weight: 500;
     }
     .history-delete {
       background: transparent;
@@ -653,24 +654,35 @@
         plugins: { title: { display: true, text: 'Übersicht', color: '#fff' }, legend: { display: false } }
       });
 
-      // 2. Time of Day
-      let todCounts = { 'Vor 12 Uhr': 0, '12 bis 17 Uhr': 0, '17 bis 24 Uhr': 0 };
+      // 2. Time of Day - hourly distribution
+      const hourCounts = new Array(24).fill(0);
       sessions.forEach(s => {
         const hour = new Date(s.start).getHours();
-        if (hour < 12) todCounts['Vor 12 Uhr']++;
-        else if (hour < 17) todCounts['12 bis 17 Uhr']++;
-        else todCounts['17 bis 24 Uhr']++;
+        hourCounts[hour]++;
       });
+      const hourLabels = Array.from({length: 24}, (_, i) => `${i}:00`);
 
-      initOrUpdateChart('todChart', 'pie', {
-        labels: Object.keys(todCounts),
-        datasets: [{ data: Object.values(todCounts), backgroundColor: ['#00d4ff', '#ffaa00', '#ff4444'], borderWidth: 0 }]
+      initOrUpdateChart('todChart', 'bar', {
+        labels: hourLabels,
+        datasets: [{
+          label: 'Sessions',
+          data: hourCounts,
+          backgroundColor: hourCounts.map((_, i) => i < 6 ? '#4a5568' : i < 12 ? '#00d4ff' : i < 18 ? '#ffaa00' : '#ff6b6b'),
+          borderRadius: 2
+        }]
       }, {
         responsive: true, maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Sessions nach Tageszeit', color: '#fff' }, legend: { position: 'bottom', labels: { color: '#888' } } }
+        plugins: {
+          title: { display: true, text: 'Sessions nach Uhrzeit', color: '#fff' },
+          legend: { display: false }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 12, color: '#888' } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
       });
 
-      // 3. Food Chart - NOW USES session.food
+      // 3. Food Chart - with values inside bars
       let foodStats = {};
       sessions.forEach(s => {
         const food = (s.food && s.food !== 'Unbekannt') ? s.food : 'Keine Angabe';
@@ -680,64 +692,113 @@
       });
 
       const foodLabels = Object.keys(foodStats);
+      const foodAvgDurations = foodLabels.map(f => (foodStats[f].duration / foodStats[f].count) / 60000);
+      const foodCounts = foodLabels.map(f => foodStats[f].count);
+
       initOrUpdateChart('foodChart', 'bar', {
         labels: foodLabels,
         datasets: [
-          { label: 'Dauer (Min)', data: foodLabels.map(f => foodStats[f].duration / 60000), backgroundColor: 'rgba(255, 170, 0, 0.8)', borderRadius: 4, yAxisID: 'y' },
-          { label: 'Anzahl', data: foodLabels.map(f => foodStats[f].count), backgroundColor: '#00d4ff', borderRadius: 4, yAxisID: 'y1' }
+          { label: 'Ø Dauer (Min)', data: foodAvgDurations, backgroundColor: 'rgba(255, 170, 0, 0.8)', borderRadius: 4, yAxisID: 'y' },
+          { label: 'Anzahl', data: foodCounts, backgroundColor: '#00d4ff', borderRadius: 4, yAxisID: 'y1' }
         ]
       }, {
         responsive: true, maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Nach Essen', color: '#fff' } },
+        plugins: {
+          title: { display: true, text: 'Nach Essen', color: '#fff' },
+          datalabels: false
+        },
         scales: {
-          y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
-          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
+          y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Ø Min', color: '#ffaa00' } },
+          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { stepSize: 1 }, title: { display: true, text: 'Anzahl', color: '#00d4ff' } }
         }
       });
-      // 4. Days Chart
+
+      // Draw values on food chart bars after render
+      if (charts['foodChart']) {
+        const foodChartInstance = charts['foodChart'];
+        const origAfterDraw = foodChartInstance.options.animation && foodChartInstance.options.animation.onComplete;
+        foodChartInstance.options.animation = {
+          onComplete: function() {
+            const ctx = foodChartInstance.ctx;
+            ctx.save();
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            foodChartInstance.data.datasets.forEach((dataset, i) => {
+              const meta = foodChartInstance.getDatasetMeta(i);
+              meta.data.forEach((bar, index) => {
+                const val = dataset.data[index];
+                const displayVal = i === 0 ? val.toFixed(1) : val;
+                ctx.fillStyle = i === 0 ? '#fff' : '#fff';
+                const barHeight = bar.base - bar.y;
+                if (barHeight > 16) {
+                  ctx.fillText(displayVal, bar.x, bar.y + barHeight / 2);
+                } else {
+                  ctx.fillText(displayVal, bar.x, bar.y - 10);
+                }
+              });
+            });
+            ctx.restore();
+          }
+        };
+        foodChartInstance.update();
+      }
+      // 4. Days Chart - clearer: bars for count, clear labels
       const daysMap = {};
       sessions.forEach(s => {
-        const d = new Date(s.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        const d = new Date(s.start).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
         if (!daysMap[d]) daysMap[d] = { count: 0, duration: 0 };
         daysMap[d].count++;
         daysMap[d].duration += s.duration;
       });
-      const dayLabels = Object.keys(daysMap).sort();
+      const dayLabels = Object.keys(daysMap);
       const dayCounts = dayLabels.map(d => daysMap[d].count);
-      const dayDurations = dayLabels.map(d => daysMap[d].duration / 60000);
+      const dayAvgDurations = dayLabels.map(d => (daysMap[d].duration / daysMap[d].count) / 60000);
 
-      initOrUpdateChart('daysChart', 'line', {
+      initOrUpdateChart('daysChart', 'bar', {
         labels: dayLabels,
         datasets: [
-          { label: 'Dauer (Min)', data: dayDurations, borderColor: '#ffaa00', backgroundColor: 'rgba(255, 170, 0, 0.1)', yAxisID: 'y', fill: true, tension: 0.3 },
-          { label: 'Anzahl', data: dayCounts, borderColor: '#00d4ff', backgroundColor: '#00d4ff', type: 'bar', yAxisID: 'y1' }
+          { label: 'Anzahl Sessions', data: dayCounts, backgroundColor: '#00d4ff', borderRadius: 4 }
         ]
       }, {
         responsive: true, maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Aktivität pro Tag', color: '#fff' } },
+        plugins: { title: { display: true, text: 'Sessions pro Tag', color: '#fff' }, legend: { display: false } },
         scales: {
-          y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
-          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+          x: { grid: { display: false }, ticks: { color: '#888', maxRotation: 45 } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
         }
       });
 
-      // 5. Trend Chart
-      let cumulativeTime = 0;
-      const trendData = [...sessions].sort((a, b) => a.start - b.start).map(s => {
-        cumulativeTime += s.duration;
-        return { x: new Date(s.start).toLocaleDateString('de-DE'), y: cumulativeTime / 60000 };
+      // 5. Avg Duration per Day Trend (replaces cumulative trend)
+      const avgDayMap = {};
+      sessions.forEach(s => {
+        const d = new Date(s.start).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        if (!avgDayMap[d]) avgDayMap[d] = { total: 0, count: 0 };
+        avgDayMap[d].total += s.duration;
+        avgDayMap[d].count++;
       });
+      const avgDayLabels = Object.keys(avgDayMap);
+      const avgDayValues = avgDayLabels.map(d => (avgDayMap[d].total / avgDayMap[d].count) / 60000);
 
       initOrUpdateChart('trendChart', 'line', {
-        labels: trendData.map(d => d.x),
+        labels: avgDayLabels,
         datasets: [{
-          label: 'Gesamtzeit (Min)', data: trendData.map(d => d.y),
-          borderColor: '#00d4ff', backgroundColor: 'rgba(0, 212, 255, 0.1)', fill: true, tension: 0.4
+          label: 'Ø Dauer (Min)',
+          data: avgDayValues,
+          borderColor: '#00d4ff',
+          backgroundColor: 'rgba(0, 212, 255, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#00d4ff',
+          pointRadius: 4
         }]
       }, {
         responsive: true, maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Gesamtzeit-Trend', color: '#fff' } },
-        scales: { x: { ticks: { maxTicksLimit: 7 } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } }
+        plugins: { title: { display: true, text: 'Ø Dauer pro Tag', color: '#fff' }, legend: { display: false } },
+        scales: {
+          x: { ticks: { maxTicksLimit: 7, color: '#888' }, grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Minuten', color: '#888' } }
+        }
       });
     }
     // --- API POLLING & ACTIONS ---
